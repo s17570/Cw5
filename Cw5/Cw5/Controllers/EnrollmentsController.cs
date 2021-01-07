@@ -4,7 +4,6 @@ using Cw5.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System;
-using System.Collections.Generic;
 using System.Data.SqlClient;
 using System.Linq;
 using System.Threading.Tasks;
@@ -15,8 +14,6 @@ namespace Cw5.Controllers
     [ApiController]
     public class EnrollmentsController : ControllerBase
     {
-        private Dictionary<string, Object> paramsDictionary = new Dictionary<string, object>();
-
         [HttpPost]
         public IActionResult EnrollStudent(EnrollStudentRequest request)
         {
