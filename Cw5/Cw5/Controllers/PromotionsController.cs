@@ -1,6 +1,7 @@
 ﻿using Cw5.DTOs.Requests;
 using Cw5.DTOs.Responses;
 using Cw5.Models;
+using Cw5.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System;
@@ -15,52 +16,25 @@ namespace Cw5.Controllers
     [ApiController]
     public class PromotionsController : ControllerBase
     {
+        private IStudentsDbService _service;
+
+        public PromotionsController(IStudentsDbService service)
+        {
+            _service = service;
+        }
         [HttpPost]
         public IActionResult PromoteStudents(PromoteStudentsRequest request)
         {
-            var psr = new PromoteStudentsResponse();
-            using (var con = new SqlConnection(Program.GetConnectionString()))
-            using (var com = new SqlCommand())
+            try
             {
-                com.Connection = con;
-                con.Open();
+                var psr = _service.PromoteStudents(request);
 
-                var tran = con.BeginTransaction();
+                return Ok(psr);
 
-                try
-                {
-                    com.CommandText = "EXEC PROMOTESTUDENTS @STUDIES = @studies, @SEMESTER = @semester";
-                    com.Parameters.AddWithValue("studies", request.Studies);
-                    com.Parameters.AddWithValue("semester", request.Semester);
-                    com.Transaction = tran;
-
-                    var dr = com.ExecuteReader();
-
-                    if (!dr.Read())
-                    {
-                        dr.Close();
-                        tran.Rollback();
-                        return BadRequest("Procedura nie powiodła się");
-                    }
-                    else
-                    {
-                        psr.IdEnrollment = (int)dr["IdEnrollment"];
-                        psr.IdStudy = (int)dr["IdStudy"];
-                        psr.Semester = (int)dr["Semester"];
-                        psr.StartDate = (DateTime)dr["StartDate"];
-                    }
-
-                    dr.Close();
-
-                    tran.Commit();
-                } catch (SqlException exc)
-                {
-                    tran.Rollback();
-                    return BadRequest("Operacja nie przebiegła pomyślnie");
-                }
+            } catch (Exception exc)
+            {
+                return BadRequest(exc.ToString());
             }
-
-            return Ok(psr);
         }
     }
 }
